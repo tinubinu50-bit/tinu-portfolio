@@ -86,3 +86,27 @@ body::before {
 
 /* Hide default cursor everywhere */
 * { cursor: none !important; }
+
+/* Watermark */
+.watermark {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+.watermark span {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(4rem, 18vw, 14rem);
+  font-weight: 800;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(148, 163, 184, 0.12);
+  letter-spacing: -4px;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
