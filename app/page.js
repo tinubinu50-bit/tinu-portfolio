@@ -4,73 +4,90 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Loader from './components/Loader'
 import Cursor from './components/Cursor'
 import Navbar from './components/Navbar'
+import PixelBat from './components/PixelBat'
 
-// ── Bat Pet ──────────────────────────────────────────────
-function BatPet() {
-  const [pos, setPos] = useState({ x: 200, y: 200 })
-  const [target, setTarget] = useState({ x: 200, y: 200 })
+function BatCageButton({ caged, onClick }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      whileHover={{ scale: 1.15 }}
+      whileTap={{ scale: 0.9 }}
+      style={{
+        position: 'fixed', bottom: '28px', right: '28px', zIndex: 9500,
+        width: '48px', height: '48px', borderRadius: '50%', border: 'none',
+        background: 'rgba(255,255,255,0.65)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        boxShadow: '0 4px 20px rgba(148,163,184,0.2), inset 0 1px 0 rgba(255,255,255,1)',
+        border: '1px solid rgba(255,255,255,0.9)',
+        fontSize: '1.3rem', cursor: 'none', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+      }}
+      title={caged ? 'Release bat' : 'Cage bat'}
+    >
+      {caged ? '🦇' : ''}
+    </motion.button>
+  )
+}
+
+function BatPet({ caged }) {
+  const [pos, setPos] = useState({ x: -200, y: -200 })
   const [flipped, setFlipped] = useState(false)
-  const [wing, setWing] = useState(false)
   const [sleeping, setSleeping] = useState(false)
   const [clicked, setClicked] = useState(false)
-  const current = useRef({ x: 200, y: 200 })
+  const target = useRef({ x: -200, y: -200 })
+  const current = useRef({ x: -200, y: -200 })
   const idleTimer = useRef(null)
+  const frame = useRef(null)
 
   useEffect(() => {
     const move = (e) => {
-      setTarget({ x: e.clientX, y: e.clientY })
+      if (caged) return
+      target.current = { x: e.clientX, y: e.clientY }
       setSleeping(false)
       clearTimeout(idleTimer.current)
       idleTimer.current = setTimeout(() => setSleeping(true), 4000)
     }
     window.addEventListener('mousemove', move)
 
-    let frame
     const loop = () => {
-      const dx = target.x - current.current.x
-      const dy = target.y - current.current.y
-      current.current.x += dx * 0.04
-      current.current.y += dy * 0.04
-      setPos({ x: current.current.x, y: current.current.y })
-      if (dx < -2) setFlipped(true)
-      if (dx > 2) setFlipped(false)
-      frame = requestAnimationFrame(loop)
+      if (!caged) {
+        const dx = target.current.x - current.current.x
+        const dy = target.current.y - current.current.y
+        current.current.x += dx * 0.05
+        current.current.y += dy * 0.05
+        setPos({ x: current.current.x, y: current.current.y })
+        if (dx < -2) setFlipped(true)
+        if (dx > 2) setFlipped(false)
+      }
+      frame.current = requestAnimationFrame(loop)
     }
-    frame = requestAnimationFrame(loop)
-
-    const wingFlap = setInterval(() => setWing(w => !w), 300)
+    frame.current = requestAnimationFrame(loop)
 
     return () => {
       window.removeEventListener('mousemove', move)
-      cancelAnimationFrame(frame)
-      clearInterval(wingFlap)
+      cancelAnimationFrame(frame.current)
       clearTimeout(idleTimer.current)
     }
-  }, [target])
+  }, [caged])
 
-  const handleClick = () => {
-    setClicked(true)
-    setTimeout(() => setClicked(false), 600)
-  }
+  if (caged) return null
 
   return (
     <div
-      onClick={handleClick}
+      onClick={() => { setClicked(true); setTimeout(() => setClicked(false), 500) }}
       style={{
-        position: 'fixed',
-        left: pos.x,
-        top: pos.y,
+        position: 'fixed', left: pos.x, top: pos.y,
         transform: `translate(-50%, -50%) scaleX(${flipped ? -1 : 1})`,
-        zIndex: 9000,
-        pointerEvents: 'auto',
-        cursor: 'none',
-        userSelect: 'none',
-        fontSize: sleeping ? '1.4rem' : clicked ? '1.8rem' : '1.4rem',
+        zIndex: 9000, pointerEvents: 'auto', cursor: 'none',
+        userSelect: 'none', fontSize: clicked ? '1.6rem' : '1.2rem',
         transition: 'font-size 0.2s',
-        filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.15))',
+        filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.1))',
       }}
     >
-      {sleeping ? '🦇💤' : clicked ? '✨🦇✨' : wing ? '🦇' : '🦇'}
+      {sleeping ? '🦇💤' : clicked ? '✨🦇✨' : '🦇'}
     </div>
   )
 }
@@ -112,24 +129,33 @@ const STitle = ({ text }) => (
 // ── Page ─────────────────────────────────────────────────
 export default function Home() {
   const [loaded, setLoaded] = useState(false)
+  const [batCaged, setBatCaged] = useState(false)
+
   return (
     <>
       <Cursor />
       <Loader onComplete={() => setLoaded(true)} />
       {loaded && (
         <>
-          <BatPet />
+          <BatPet caged={batCaged} />
+          <BatCageButton caged={batCaged} onClick={() => setBatCaged(b => !b)} />
+
           <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0, userSelect: 'none', overflow: 'hidden' }}>
             <span style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(2rem, 7vw, 6rem)', fontWeight: 800, color: 'rgba(15,23,42,0.04)', letterSpacing: '0.4em', whiteSpace: 'nowrap' }}>TINU LAL</span>
           </div>
           <Navbar />
-          <main style={{ position: 'relative', zIndex: 1 }}>
+          <motion.main
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            style={{ position: 'relative', zIndex: 1 }}
+          >
             <HeroSection />
             <AboutSection />
             <ProjectsSection />
             <SkillsSection />
             <ContactSection />
-          </main>
+          </motion.main>
         </>
       )}
     </>
@@ -569,9 +595,9 @@ function AboutSection() {
 function ProjectsSection() {
   const { ref, fade } = useReveal()
   const projects = [
-    { title: 'RealTimes Cargo Transport LLC', description: 'Professional business website built for a real client  clean layout, responsive design, polished UI.', url: 'https://www.realtimestc.ae/', tags: ['Web Design', 'Client Project', 'Responsive'], color: 'rgba(59,130,246,0.06)', accent: '#3b82f6' },
+    { title: 'RealTimes Cargo Transport LLC', description: 'Professional Logistics business website built for a client  clean layout, responsive design, polished UI.', url: 'https://www.realtimestc.ae/', tags: ['Web Design', 'Client Project', 'Responsive'], color: 'rgba(59,130,246,0.06)', accent: '#3b82f6' },
     { title: 'Florified(Ongoing)', description: 'Floral e-commerce concept with elegant product presentation, smooth interactions and modern aesthetics.', url: 'https://florified.vercel.app/', tags: ['E-Commerce', 'UI Design', 'Next.js'], color: 'rgba(236,72,153,0.06)', accent: '#ec4899' },
-    { title: 'FastGrowing Cargo(Ongoing)', description: 'Logistics company website with clear service sections, contact flow, and mobile-first responsive layout.', url: 'https://fastgrowing-cargo.vercel.app/', tags: ['Web Design', 'Logistics', 'Responsive'], color: 'rgba(16,185,129,0.06)', accent: '#10b981' },
+    { title: 'FastGrowing Cargo(Ongoing)', description: 'Logistics company website, and mobile-first responsive layout, The client wanted similar to the first project .', url: 'https://fastgrowing-cargo.vercel.app/', tags: ['Web Design', 'Logistics', 'Responsive'], color: 'rgba(16,185,129,0.06)', accent: '#10b981' },
   ]
   return (
     <section id="projects" ref={ref} style={{ padding: '80px 6vw', position: 'relative' }}>
