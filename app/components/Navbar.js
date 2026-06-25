@@ -20,7 +20,21 @@ export default function Navbar() {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768)
     checkMobile()
     window.addEventListener('resize', checkMobile)
-    const onScroll = () => setScrolled(window.scrollY > 40)
+
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40)
+      // Scroll spy
+      const sections = ['home', 'about', 'skills', 'projects', 'contact']
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sections[i])
+        if (el && window.scrollY >= el.offsetTop - 120) {
+          const label = sections[i].charAt(0).toUpperCase() + sections[i].slice(1)
+          setActive(label)
+          break
+        }
+      }
+    }
+
     window.addEventListener('scroll', onScroll)
     return () => {
       window.removeEventListener('resize', checkMobile)

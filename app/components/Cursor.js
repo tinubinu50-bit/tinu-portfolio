@@ -1,25 +1,32 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useState, useRef } from 'react'
 
 export default function Cursor() {
-  const [pos, setPos] = useState({ x: -100, y: -100 })
-  const [ring, setRing] = useState({ x: -100, y: -100 })
-  const [clicking, setClicking] = useState(false)
+  const dotRef = useRef(null)
+  const ringRef = useRef(null)
   const [hovering, setHovering] = useState(false)
+  const [clicking, setClicking] = useState(false)
+  const pos = useRef({ x: -200, y: -200 })
+  const ring = useRef({ x: -200, y: -200 })
 
   useEffect(() => {
-    const move = (e) => setPos({ x: e.clientX, y: e.clientY })
+    const move = (e) => {
+      pos.current = { x: e.clientX, y: e.clientY }
+      if (dotRef.current) {
+        dotRef.current.style.left = e.clientX + 'px'
+        dotRef.current.style.top = e.clientY + 'px'
+      }
+    }
     window.addEventListener('mousemove', move)
 
-    // Lag for ring
     let frame
-    const lerp = (a, b, t) => a + (b - a) * t
-    let rx = -100, ry = -100
     const loop = () => {
-      rx = lerp(rx, pos.x, 0.12)
-      ry = lerp(ry, pos.y, 0.12)
-      setRing({ x: rx, y: ry })
+      ring.current.x += (pos.current.x - ring.current.x) * 0.1
+      ring.current.y += (pos.current.y - ring.current.y) * 0.1
+      if (ringRef.current) {
+        ringRef.current.style.left = ring.current.x + 'px'
+        ringRef.current.style.top = ring.current.y + 'px'
+      }
       frame = requestAnimationFrame(loop)
     }
     frame = requestAnimationFrame(loop)
@@ -29,59 +36,52 @@ export default function Cursor() {
     window.addEventListener('mousedown', down)
     window.addEventListener('mouseup', up)
 
-    // Hover on links/buttons
-    const addHover = () => setHovering(true)
-    const removeHover = () => setHovering(false)
-    const targets = document.querySelectorAll('a, button, [data-hover]')
-    targets.forEach(el => {
-      el.addEventListener('mouseenter', addHover)
-      el.addEventListener('mouseleave', removeHover)
-    })
+    const onEnter = () => setHovering(true)
+    const onLeave = () => setHovering(false)
+    const addListeners = () => {
+      document.querySelectorAll('a, button, [data-hover]').forEach(el => {
+        el.addEventListener('mouseenter', onEnter)
+        el.addEventListener('mouseleave', onLeave)
+      })
+    }
+    addListeners()
+    const observer = new MutationObserver(addListeners)
+    observer.observe(document.body, { childList: true, subtree: true })
 
     return () => {
       window.removeEventListener('mousemove', move)
       window.removeEventListener('mousedown', down)
       window.removeEventListener('mouseup', up)
       cancelAnimationFrame(frame)
+      observer.disconnect()
     }
-  }, [pos.x, pos.y])
+  }, [])
 
   return (
     <>
-      {/* Dot */}
-      <motion.div
-        style={{
-          position: 'fixed',
-          left: pos.x,
-          top: pos.y,
-          width: clicking ? 6 : 8,
-          height: clicking ? 6 : 8,
-          borderRadius: '50%',
-          background: hovering ? '#3b82f6' : '#0f172a',
-          transform: 'translate(-50%, -50%)',
-          pointerEvents: 'none',
-          zIndex: 99999,
-          transition: 'width 0.15s, height 0.15s, background 0.2s',
-          boxShadow: hovering ? '0 0 12px rgba(59,130,246,0.6)' : 'none',
-        }}
-      />
-      {/* Ring */}
-      <motion.div
-        style={{
-          position: 'fixed',
-          left: ring.x,
-          top: ring.y,
-          width: hovering ? 48 : clicking ? 28 : 36,
-          height: hovering ? 48 : clicking ? 28 : 36,
-          borderRadius: '50%',
-          border: `1.5px solid ${hovering ? '#3b82f6' : 'rgba(15,23,42,0.3)'}`,
-          transform: 'translate(-50%, -50%)',
-          pointerEvents: 'none',
-          zIndex: 99998,
-          transition: 'width 0.2s, height 0.2s, border-color 0.2s',
-          backdropFilter: hovering ? 'blur(2px)' : 'none',
-        }}
-      />
+      <div ref={dotRef} style={{
+        position: 'fixed',
+        width: clicking ? 6 : 8,
+        height: clicking ? 6 : 8,
+        borderRadius: '50%',
+        background: hovering ? '#3b82f6' : '#0f172a',
+        transform: 'translate(-50%, -50%)',
+        pointerEvents: 'none',
+        zIndex: 99999,
+        boxShadow: hovering ? '0 0 12px rgba(59,130,246,0.5)' : 'none',
+        transition: 'width 0.15s, height 0.15s, background 0.2s',
+      }} />
+      <div ref={ringRef} style={{
+        position: 'fixed',
+        width: hovering ? 48 : clicking ? 24 : 36,
+        height: hovering ? 48 : clicking ? 24 : 36,
+        borderRadius: '50%',
+        border: `1.5px solid ${hovering ? 'rgba(59,130,246,0.5)' : 'rgba(15,23,42,0.2)'}`,
+        transform: 'translate(-50%, -50%)',
+        pointerEvents: 'none',
+        zIndex: 99998,
+        transition: 'width 0.2s, height 0.2s, border-color 0.2s',
+      }} />
     </>
   )
 }

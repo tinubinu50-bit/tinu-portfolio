@@ -99,14 +99,3 @@ body::before {
   user-select: none;
 }
 
-.watermark span {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(4rem, 18vw, 14rem);
-  font-weight: 800;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(148, 163, 184, 0.12);
-  letter-spacing: -4px;
-  white-space: nowrap;
-  opacity: 0.7;
-}
-
