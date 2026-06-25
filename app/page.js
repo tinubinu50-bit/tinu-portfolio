@@ -4,8 +4,6 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Loader from './components/Loader'
 import Cursor from './components/Cursor'
 import Navbar from './components/Navbar'
-import PixelBat from './components/PixelBat'
-
 function BatCageButton({ caged, onClick }) {
   return (
     <motion.button
