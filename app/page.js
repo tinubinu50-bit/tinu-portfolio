@@ -135,7 +135,6 @@ export default function Home() {
     </>
   )
 }
-
 // ── Hero ─────────────────────────────────────────────────
 function HeroSection() {
   return (
@@ -171,17 +170,7 @@ function HeroSection() {
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.88 }}
           style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
-          {[
-            { label: 'GH', href: 'https://github.com/tinubinu50-bit' },
-            { label: 'LI', href: 'https://www.linkedin.com/in/tinu-binu-348548390/' },
-            { label: 'IG', href: 'https://www.instagram.com/tinu.lal/' },
-          ].map(s => (
-            <motion.a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-              whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}
-              style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textDecoration: 'none', padding: '6px 12px', borderRadius: '999px', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(148,163,184,0.2)' }}>
-              {s.label}
-            </motion.a>
-          ))}
+
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '18px', height: '28px', borderRadius: '9px', border: '1.5px solid rgba(148,163,184,0.3)', display: 'flex', justifyContent: 'center', paddingTop: '5px' }}>
@@ -204,27 +193,329 @@ function HeroSection() {
     </section>
   )
 }
-
-// ── About ─────────────────────────────────────────────────
+// ── About Section──────
 function AboutSection() {
   const { ref, fade } = useReveal()
+  
+  // Track window width dynamically for accurate responsive layouts
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 850)
+    handleResize() // Run on initial mount
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Dino Game State & Refs
+  const canvasRef = useRef(null)
+  const [gameState, setGameState] = useState('IDLE')
+  const [score, setScore] = useState(0)
+  const [highScore, setHighScore] = useState(0)
+  
+  const gameLoopRef = useRef(null)
+  const dinoY = useRef(100)
+  const dinoVelocity = useRef(0)
+  const isJumping = useRef(false)
+  const obstacles = useRef([])
+  const gameScore = useRef(0)
+  const speed = useRef(4.5)
+
+  const GRAVITY = 0.6
+  const JUMP_FORCE = -9.5
+  const GROUND_Y = 100
+
+  const DINO_SPRITE = [
+    "            ########",
+    "            #########",
+    "            # #######",
+    "            #########",
+    "            ###     ",
+    "#           ######  ",
+    "##         ####      ",
+    "##        ######    ",
+    "##       ##########    ",
+    "###     ########  # ",
+    " ##############     ",
+    " ##############     ",
+    "  ############      ",
+    "   ##########       ",
+    "    ########        ",
+    "     ######         ",
+    "      ####          ",
+    "      #  #          ",
+    "      #  #          ",
+    "     ##  ##         "
+  ]
+
+  const CACTUS_SPRITE = [
+    "   ##   ",
+    "   ##   ",
+    " # ## # ",
+    " # ## # ",
+    " ###### ",
+    "   ##   ",
+    "   ##   ",
+    "   ##   ",
+    "   ##   ",
+    "   ##   "
+  ]
+
+  const triggerJump = () => {
+    if (gameState === 'IDLE' || gameState === 'GAMEOVER') {
+      resetGame()
+      setGameState('PLAYING')
+    } else if (!isJumping.current) {
+      dinoVelocity.current = JUMP_FORCE
+      isJumping.current = true
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault()
+        triggerJump()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gameState])
+
+  const resetGame = () => {
+    dinoY.current = GROUND_Y
+    dinoVelocity.current = 0
+    isJumping.current = false
+    obstacles.current = []
+    gameScore.current = 0
+    speed.current = 4.5
+    setScore(0)
+  }
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let obstacleTimer = 0
+
+    const updateGame = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(0, GROUND_Y + 40)
+      ctx.lineTo(canvas.width, GROUND_Y + 40)
+      ctx.stroke()
+
+      if (gameState === 'PLAYING') {
+        dinoVelocity.current += GRAVITY
+        dinoY.current += dinoVelocity.current
+
+        if (dinoY.current >= GROUND_Y) {
+          dinoY.current = GROUND_Y
+          dinoVelocity.current = 0
+          isJumping.current = false
+        }
+
+        gameScore.current += 0.15
+        setScore(Math.floor(gameScore.current))
+        speed.current += 0.001
+
+        obstacleTimer++
+        if (obstacleTimer > Math.random() * 40 + 80) {
+          obstacles.current.push({
+            x: canvas.width,
+            width: 16,
+            height: 20
+          })
+          obstacleTimer = 0
+        }
+      }
+
+      ctx.fillStyle = '#0f172a'
+      const pixelSize = 2
+      DINO_SPRITE.forEach((row, rowIndex) => {
+        for (let colIndex = 0; colIndex < row.length; colIndex++) {
+          if (row[colIndex] === '#') {
+            ctx.fillRect(
+              40 + colIndex * pixelSize,
+              dinoY.current + rowIndex * pixelSize,
+              pixelSize,
+              pixelSize
+            )
+          }
+        }
+      })
+
+      for (let i = obstacles.current.length - 1; i >= 0; i--) {
+        const obs = obstacles.current[i]
+        if (gameState === 'PLAYING') {
+          obs.x -= speed.current
+        }
+
+        ctx.fillStyle = '#10b981'
+        CACTUS_SPRITE.forEach((row, rowIndex) => {
+          for (let colIndex = 0; colIndex < row.length; colIndex++) {
+            if (row[colIndex] === '#') {
+              ctx.fillRect(
+                obs.x + colIndex * pixelSize,
+                (GROUND_Y + 40) - (CACTUS_SPRITE.length * pixelSize) + rowIndex * pixelSize,
+                pixelSize,
+                pixelSize
+              )
+            }
+          }
+        })
+
+        if (
+          obs.x < 40 + (20 * pixelSize) &&
+          obs.x + obs.width > 40 &&
+          dinoY.current + (20 * pixelSize) > (GROUND_Y + 40) - obs.height
+        ) {
+          setGameState('GAMEOVER')
+          if (Math.floor(gameScore.current) > highScore) {
+            setHighScore(Math.floor(gameScore.current))
+          }
+        }
+
+        if (obs.x + obs.width < 0) {
+          obstacles.current.splice(i, 1)
+        }
+      }
+
+      if (gameState === 'IDLE') {
+        ctx.fillStyle = '#475569'
+        ctx.font = '600 13px Inter, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('TAP HERE OR PRESS SPACE TO JUMP', canvas.width / 2, canvas.height / 2 + 5)
+      } else if (gameState === 'GAMEOVER') {
+        ctx.fillStyle = '#ef4444'
+        ctx.font = '700 14px Syne, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 5)
+        ctx.fillStyle = '#475569'
+        ctx.font = '500 11px Inter, sans-serif'
+        ctx.fillText('Tap to try again', canvas.width / 2, canvas.height / 2 + 15)
+      }
+
+      gameLoopRef.current = requestAnimationFrame(updateGame)
+    }
+
+    gameLoopRef.current = requestAnimationFrame(updateGame)
+    return () => cancelAnimationFrame(gameLoopRef.current)
+  }, [gameState, highScore])
+
+  const matteGlass = {
+    background: 'rgba(255, 255, 255, 0.12)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.35)',
+    boxShadow: '0 8px 32px 0 rgba(15, 23, 42, 0.03)',
+    borderRadius: '16px'
+  }
+
   return (
-    <section id="about" ref={ref} style={{ padding: '80px 6vw', position: 'relative' }}>
+    <section id="about" ref={ref} style={{ padding: isMobile ? '40px 4vw' : '80px 6vw', position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ ...fade(0), marginBottom: '36px' }}>
+        <div style={{ ...fade(0), marginBottom: '32px' }}>
           <SLabel text="About Me" /><STitle text="Who I Am" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-          <div style={{ ...fade(0.1), ...glass, gridColumn: '1 / -1' }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', color: '#334155', lineHeight: 1.85, fontWeight: 300 }}>
-              I'm <strong style={{ fontWeight: 600, color: '#0f172a' }}>Tinu Lal</strong>, a Computer Science student based in Dubai. First year BSc at <strong style={{ fontWeight: 600, color: '#0f172a' }}>Westford University College</strong> (Liverpool John Moores University). I hold a <strong style={{ fontWeight: 600, color: '#0f172a' }}>Diploma in Data Science & AI</strong> from G-Tech / ABMA Education (Grade B+), Level 3 RQF accredited.
-            </p>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', color: '#334155', lineHeight: 1.85, fontWeight: 300, marginTop: '14px' }}>
-              Actively exploring <strong style={{ fontWeight: 600, color: '#0f172a' }}>web design & development</strong> — building real client projects with a strong visual and technical sensibility. English, Malayalam & Hindi speaker.
-            </p>
+        
+        {/* Row 1: Dynamically handles the layout asymmetry to stop squishing */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', 
+          gap: '16px', 
+          marginBottom: '24px', 
+          alignItems: 'start' 
+        }}>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+            {/* Bio Text Card */}
+            <div style={{ ...fade(0.1), ...glass, padding: isMobile ? '24px' : '32px' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', color: '#334155', lineHeight: 1.85, fontWeight: 300 }}>
+                I'm <strong style={{ fontWeight: 600, color: '#0f172a' }}>Tinu Lal</strong>, a Computer Science student based in Dubai. First year BSc at <strong style={{ fontWeight: 600, color: '#0f172a' }}>Westford University College</strong> (Liverpool John Moores University). I hold a <strong style={{ fontWeight: 600, color: '#0f172a' }}>Diploma in Data Science & AI</strong> from G-Tech / ABMA Education (Grade B+), Level 3 RQF accredited.
+              </p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', color: '#334155', lineHeight: 1.85, fontWeight: 300, marginTop: '14px' }}>
+                Actively exploring <strong style={{ fontWeight: 600, color: '#0f172a' }}>web design & development</strong>  building real client projects with a strong visual and technical sensibility. 
+              </p>
+            </div>
+
+            {/* Clear Matte Glass Retro Dino Game */}
+            <div 
+              style={{ ...fade(0.12), ...matteGlass, padding: '16px', position: 'relative', cursor: 'pointer', overflow: 'hidden', width: '100%' }}
+              onClick={triggerJump}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 4px' }}>
+                <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.68rem', fontWeight: 800, color: '#475569', letterSpacing: '0.05em' }}>
+                  DINO JUMP MINI-GAME
+                </span>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: 600, color: '#0f172a', display: 'flex', gap: '12px' }}>
+                  <span>SCORE: <span style={{ tabularNums: true }}>{score}</span></span>
+                  <span style={{ color: '#64748b' }}>HI: <span style={{ tabularNums: true }}>{highScore}</span></span>
+                </div>
+              </div>
+
+              <div style={{ width: '100%', overflow: 'hidden' }}>
+                <canvas 
+                  ref={canvasRef} 
+                  width={760} 
+                  height={145} 
+                  style={{ width: '100%', height: '145px', display: 'block' }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div style={{ ...fade(0.15), ...glass }}>
+          {/* Portrait Image Card (Clean width enforcement) */}
+          <div style={{ 
+            ...fade(0.15), 
+            ...glass, 
+            padding: '12px', 
+            width: '100%',
+            maxWidth: isMobile ? '100%' : '320px',
+            order: isMobile ? -1 : 0 // Displays image on top when stacked on mobile formats
+          }}>
+            <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(15,23,42,0.06)', border: '1px solid rgba(255,255,255,0.6)' }}>
+              <img 
+                src="/images/portrait.jpeg" 
+                alt="Tinu Lal Portrait" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
+              />
+            </div>
+          </div>
+
+        </div>
+
+        {/* Row 2: Symmetric Grid for Lower Credentials */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', alignItems: 'start' }}>
+          
+          {/* Languages & Quick Facts */}
+          <div style={{ ...fade(0.2), ...glass, padding: '24px' }}>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>Languages</h3>
+            {[['English', 5], ['Malayalam', 5], ['Hindi', 4]].map(([lang, level]) => (
+              <div key={lang} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: '#334155', fontWeight: 500 }}>{lang}</span>
+                <div style={{ display: 'flex', gap: '3px' }}>
+                  {[...Array(5)].map((_, j) => (
+                    <div key={j} style={{ width: '16px', height: '3px', borderRadius: '2px', background: j < level ? '#0f172a' : 'rgba(148,163,184,0.2)' }} />
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(148,163,184,0.1)' }}>
+              <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>Quick Facts</h3>
+              {[['Location', 'Dubai, UAE'], ['Degree', 'BSc Computer Science'], ['University', 'Westford · LJMU'], ['Phone', '+971 056 117 1829'], ['Email', 'tinubinu50@gmail.com']].map(([l, v]) => (
+                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', gap: '12px' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>{l}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#334155', fontWeight: 500, textAlign: 'right' }}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Education */}
+          <div style={{ ...fade(0.25), ...glass, padding: '24px' }}>
             <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '20px' }}>Education</h3>
             {[
               { title: 'BSc Computer Science', sub: 'Westford · Liverpool John Moores University', date: '2025 — Ongoing', tag: 'Current' },
@@ -244,7 +535,8 @@ function AboutSection() {
             ))}
           </div>
 
-          <div style={{ ...fade(0.2), ...glass }}>
+          {/* Experience */}
+          <div style={{ ...fade(0.3), ...glass, padding: '24px' }}>
             <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '20px' }}>Experience</h3>
             {[
               { title: 'Data Collector', sub: "Byju's Learning App · Dubai", date: 'Internship', points: ['Conducted surveys & documented feedback', 'Generated weekly & monthly reports', 'Maintained data integrity processes'] },
@@ -268,39 +560,16 @@ function AboutSection() {
             ))}
           </div>
 
-          <div style={{ ...fade(0.25), ...glass }}>
-            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>Languages</h3>
-            {[['English', 5], ['Malayalam', 5], ['Hindi', 4]].map(([lang, level]) => (
-              <div key={lang} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: '#334155', fontWeight: 500 }}>{lang}</span>
-                <div style={{ display: 'flex', gap: '3px' }}>
-                  {[...Array(5)].map((_, j) => (
-                    <div key={j} style={{ width: '16px', height: '3px', borderRadius: '2px', background: j < level ? '#0f172a' : 'rgba(148,163,184,0.2)' }} />
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(148,163,184,0.1)' }}>
-              <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>Quick Facts</h3>
-              {[['Location', 'Dubai, UAE'], ['Degree', 'BSc Computer Science'], ['University', 'Westford · LJMU'], ['Phone', '+971 056 117 1829'], ['Email', 'tinubinu50@gmail.com']].map(([l, v]) => (
-                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', gap: '12px' }}>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>{l}</span>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#334155', fontWeight: 500, textAlign: 'right' }}>{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>
   )
 }
-
 // ── Projects ──────────────────────────────────────────────
 function ProjectsSection() {
   const { ref, fade } = useReveal()
   const projects = [
-    { title: 'RealTime STC', description: 'Professional business website built for a real client — clean layout, responsive design, polished UI.', url: 'https://www.realtimestc.ae/', tags: ['Web Design', 'Client Project', 'Responsive'], color: 'rgba(59,130,246,0.06)', accent: '#3b82f6' },
+    { title: 'RealTime STC', description: 'Professional business website built for a real client  clean layout, responsive design, polished UI.', url: 'https://www.realtimestc.ae/', tags: ['Web Design', 'Client Project', 'Responsive'], color: 'rgba(59,130,246,0.06)', accent: '#3b82f6' },
     { title: 'Florified', description: 'Floral e-commerce concept with elegant product presentation, smooth interactions and modern aesthetics.', url: 'https://florified.vercel.app/', tags: ['E-Commerce', 'UI Design', 'Next.js'], color: 'rgba(236,72,153,0.06)', accent: '#ec4899' },
     { title: 'FastGrowing Cargo', description: 'Logistics company website with clear service sections, contact flow, and mobile-first responsive layout.', url: 'https://fastgrowing-cargo.vercel.app/', tags: ['Web Design', 'Logistics', 'Responsive'], color: 'rgba(16,185,129,0.06)', accent: '#10b981' },
   ]
@@ -338,7 +607,6 @@ function ProjectsSection() {
     </section>
   )
 }
-
 // ── Skills ────────────────────────────────────────────────
 function SkillsSection() {
   const { ref, fade } = useReveal()
@@ -375,7 +643,6 @@ function SkillsSection() {
     </section>
   )
 }
-
 // ── Contact ───────────────────────────────────────────────
 function ContactSection() {
   const { ref, fade } = useReveal()
@@ -396,10 +663,7 @@ function ContactSection() {
               <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(1.3rem, 2.5vw, 2rem)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: '10px' }}>Let's work together</h3>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', color: '#64748b', lineHeight: 1.65, maxWidth: '380px' }}>Open to freelance projects, collaborations, and opportunities. Feel free to reach out!</p>
             </div>
-            <motion.a href="mailto:tinubinu50@gmail.com" whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
-              style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '14px 32px', borderRadius: '999px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', boxShadow: '0 4px 20px rgba(15,23,42,0.25)', whiteSpace: 'nowrap' }}>
-              Send an Email ↗
-            </motion.a>
+
           </div>
 
           {[
