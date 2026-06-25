@@ -9,7 +9,10 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
-  }
+  },
+  verification: {
+    google: 'gb29RoEdHWZazRujTmWRtqp8Q_AlmZnWa3mPedPNvKA',
+  },
 }
 
 export default function RootLayout({ children }) {
