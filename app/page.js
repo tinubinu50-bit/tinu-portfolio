@@ -448,7 +448,7 @@ function AboutSection() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 4px' }}>
                 <span style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.68rem', fontWeight: 800, color: '#475569', letterSpacing: '0.05em' }}>
-                  DINO JUMP MINI-GAME
+                  MINI-GAME
                 </span>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: 600, color: '#0f172a', display: 'flex', gap: '12px' }}>
                   <span>SCORE: <span style={{ tabularNums: true }}>{score}</span></span>
@@ -569,9 +569,9 @@ function AboutSection() {
 function ProjectsSection() {
   const { ref, fade } = useReveal()
   const projects = [
-    { title: 'RealTime STC', description: 'Professional business website built for a real client  clean layout, responsive design, polished UI.', url: 'https://www.realtimestc.ae/', tags: ['Web Design', 'Client Project', 'Responsive'], color: 'rgba(59,130,246,0.06)', accent: '#3b82f6' },
-    { title: 'Florified', description: 'Floral e-commerce concept with elegant product presentation, smooth interactions and modern aesthetics.', url: 'https://florified.vercel.app/', tags: ['E-Commerce', 'UI Design', 'Next.js'], color: 'rgba(236,72,153,0.06)', accent: '#ec4899' },
-    { title: 'FastGrowing Cargo', description: 'Logistics company website with clear service sections, contact flow, and mobile-first responsive layout.', url: 'https://fastgrowing-cargo.vercel.app/', tags: ['Web Design', 'Logistics', 'Responsive'], color: 'rgba(16,185,129,0.06)', accent: '#10b981' },
+    { title: 'RealTimes Cargo Transport LLC', description: 'Professional business website built for a real client  clean layout, responsive design, polished UI.', url: 'https://www.realtimestc.ae/', tags: ['Web Design', 'Client Project', 'Responsive'], color: 'rgba(59,130,246,0.06)', accent: '#3b82f6' },
+    { title: 'Florified(Ongoing)', description: 'Floral e-commerce concept with elegant product presentation, smooth interactions and modern aesthetics.', url: 'https://florified.vercel.app/', tags: ['E-Commerce', 'UI Design', 'Next.js'], color: 'rgba(236,72,153,0.06)', accent: '#ec4899' },
+    { title: 'FastGrowing Cargo(Ongoing)', description: 'Logistics company website with clear service sections, contact flow, and mobile-first responsive layout.', url: 'https://fastgrowing-cargo.vercel.app/', tags: ['Web Design', 'Logistics', 'Responsive'], color: 'rgba(16,185,129,0.06)', accent: '#10b981' },
   ]
   return (
     <section id="projects" ref={ref} style={{ padding: '80px 6vw', position: 'relative' }}>
@@ -611,9 +611,9 @@ function ProjectsSection() {
 function SkillsSection() {
   const { ref, fade } = useReveal()
   const skillGroups = [
-    { category: 'Web Design & Dev', accent: '#3b82f6', skills: ['HTML & CSS', 'JavaScript', 'Next.js', 'React', 'Responsive Design', 'UI/UX Design', 'Framer Motion'] },
-    { category: 'Data & AI', accent: '#8b5cf6', skills: ['Python', 'Data Analysis', 'Machine Learning', 'Data Science', 'Microsoft Excel', 'Reporting & Dashboards'] },
-    { category: 'Tools & Soft Skills', accent: '#10b981', skills: ['MS Office Suite', 'Attention to Detail', 'Multitasking', 'Customer Service', 'Documentation', 'Schedule Management'] },
+    { category: 'Web Design & Dev', accent: '#3b82f6', skills: ['HTML & CSS', 'JavaScript', 'Next.js', 'React', 'Responsive Design', 'UI/UX Design', 'Framer Motion', 'SEO'] },
+    { category: 'Data & AI', accent: '#8b5cf6', skills: ['Python', 'VBA Code', 'Machine Learning', 'Data Science', 'Microsoft Excel', 'Reporting & Dashboards', 'PowerBI', 'MongoDB','MS Acess','Supabase'] },
+    { category: 'Tools & Soft Skills', accent: '#10b981', skills: ['MS Office', 'Adobe Photoshop', 'Multitasking', 'Designing', 'Documentation', 'Schedule Management','3D modeling','Vibe Coading'] },
   ]
   return (
     <section id="skills" ref={ref} style={{ padding: '80px 6vw', position: 'relative' }}>

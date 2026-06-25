@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Tinu Lal — Portfolio',
+  title: 'Tinu Lal  Portfolio',
   description: 'BSc Computer Science student, Web Designer & Data Science enthusiast based in Dubai, UAE.',
 }
 
