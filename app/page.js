@@ -687,7 +687,19 @@ function ContactSection() {
               <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(1.3rem, 2.5vw, 2rem)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: '10px' }}>Let's work together</h3>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', color: '#64748b', lineHeight: 1.65, maxWidth: '380px' }}>Open to freelance projects, collaborations, and opportunities. Feel free to reach out!</p>
             </div>
-
+{/* BAT CONTAINER AREA */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              width: '120px', 
+              height: '120px', 
+              marginRight: '20px',
+              position: 'relative',
+              overflow: 'visible'
+            }}>
+              <div className="bat" />
+            </div>
           </div>
 
           {[
