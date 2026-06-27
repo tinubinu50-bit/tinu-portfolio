@@ -11,6 +11,10 @@ export const metadata = {
     siteName: 'Tinu Lal Portfolio',
     images: [{ url: '/opengraph-image.png', width: 512, height: 512, alt: 'Tinu Lal' }],
     type: 'website',
+    icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+    }
   },
 }
 
