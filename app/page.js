@@ -4,6 +4,8 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Loader from './components/Loader'
 import Cursor from './components/Cursor'
 import Navbar from './components/Navbar'
+import ScrollLine from './components/ScrollLine'
+
 function BatCageButton({ caged, onClick }) {
   return (
     <motion.button
@@ -135,13 +137,13 @@ export default function Home() {
       <Loader onComplete={() => setLoaded(true)} />
       {loaded && (
         <>
-          <BatPet caged={batCaged} />
-          <BatCageButton caged={batCaged} onClick={() => setBatCaged(b => !b)} />
 
           <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0, userSelect: 'none', overflow: 'hidden' }}>
             <span style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(2rem, 7vw, 6rem)', fontWeight: 800, color: 'rgba(15,23,42,0.04)', letterSpacing: '0.4em', whiteSpace: 'nowrap' }}>TINU LAL</span>
           </div>
           <Navbar />
+          <Navbar />
+          <ScrollLine />
           <motion.main
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -465,7 +467,7 @@ function AboutSection() {
               </p>
             </div>
 
-            {/* Clear Matte Glass Retro Dino Game */}
+            {/* Dino Game */}
             <div 
               style={{ ...fade(0.12), ...matteGlass, padding: '16px', position: 'relative', cursor: 'pointer', overflow: 'hidden', width: '100%' }}
               onClick={triggerJump}
@@ -491,7 +493,7 @@ function AboutSection() {
             </div>
           </div>
 
-          {/* Portrait Image Card (Clean width enforcement) */}
+          {/* Portrait Image Card */}
           <div style={{ 
             ...fade(0.15), 
             ...glass, 
@@ -558,34 +560,8 @@ function AboutSection() {
               </div>
             ))}
           </div>
-
-          {/* Experience */}
-          <div style={{ ...fade(0.3), ...glass, padding: '24px' }}>
-            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '20px' }}>Experience</h3>
-            {[
-              { title: 'Data Collector', sub: "Byju's Learning App · Dubai", date: 'Internship', points: ['Conducted surveys & documented feedback', 'Generated weekly & monthly reports', 'Maintained data integrity processes'] },
-              { title: 'Event Organiser', sub: 'EXPO Centre Sharjah · Volunteer', date: 'Volunteering', points: ['Event setup, registration & guidance', 'Collaborated on safety protocols', 'Logistical coordination at exhibitions'] },
-            ].map((item, i, arr) => (
-              <div key={i} style={{ marginBottom: i < arr.length - 1 ? '20px' : 0, paddingBottom: i < arr.length - 1 ? '20px' : 0, borderBottom: i < arr.length - 1 ? '1px solid rgba(148,163,184,0.1)' : 'none' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <div>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.83rem', fontWeight: 600, color: '#0f172a', marginBottom: '2px' }}>{item.title}</p>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: '#64748b' }}>{item.sub}</p>
-                  </div>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.6rem', fontWeight: 600, color: '#64748b', padding: '2px 9px', borderRadius: '999px', background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.15)', whiteSpace: 'nowrap' }}>{item.date}</span>
-                </div>
-                {item.points.map((pt, j) => (
-                  <div key={j} style={{ display: 'flex', gap: '6px', marginBottom: '3px' }}>
-                    <span style={{ color: '#94a3b8', fontSize: '0.68rem', marginTop: '3px', flexShrink: 0 }}>—</span>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.55 }}>{pt}</p>
-                  </div>
-                ))}
               </div>
-            ))}
           </div>
-
-        </div>
-      </div>
     </section>
   )
 }
@@ -687,19 +663,7 @@ function ContactSection() {
               <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(1.3rem, 2.5vw, 2rem)', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', marginBottom: '10px' }}>Let's work together</h3>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', color: '#64748b', lineHeight: 1.65, maxWidth: '380px' }}>Open to freelance projects, collaborations, and opportunities. Feel free to reach out!</p>
             </div>
-{/* BAT CONTAINER AREA */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              width: '120px', 
-              height: '120px', 
-              marginRight: '20px',
-              position: 'relative',
-              overflow: 'visible'
-            }}>
-              <div className="bat" />
-            </div>
+
           </div>
 
           {[
